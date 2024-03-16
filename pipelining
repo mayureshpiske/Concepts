@@ -1,0 +1,80 @@
+Pipelining is the techinique which is used to improve the performance/timing of the design by breaking up the big combinational loop path into multiple stages
+which allows the parallel processing and reducce the critical delay in the design 
+
+####################################################################################################################################
+consider below example - piplelining implimentation:
+####################################################################################################################################
+module pipelining_check ();
+
+input logic clk;
+input logic rst;
+
+logic [8:0] next_stage_result;
+logic wr_en,full;
+logic [3:0] load_value_f;
+
+// next stage
+assign next_stage_result <= load_value_f + (wr_en + !full);
+
+//present stage
+always_ff @ (posedge clk or negedge rst)
+begin
+  if(!rst)
+    load_value_f <= '0;
+  else begin
+    case(sel)
+       00: load_value_f <= 4'h0A;
+       01: load_value_f <= 4'h0B;
+       10: load_value_f <= 4'h0C;
+       11: load_value_f <= 4'h0D;
+    endcase
+ end
+end
+
+endmodule
+
+####################################################################################################################################
+One more example for non-pipelined code
+####################################################################################################################################
+
+module multiplier (
+    input [7:0] a,
+    input [7:0] b,
+    output reg [15:0] result
+);
+
+always @* begin
+    result = a * b;
+end
+
+endmodule
+
+####################################################################################################################################
+In the above example, the multiplication operation is performed in a single combinational logic block. 
+As a result, the critical path delay may be long, and the throughput of the multiplier is limited by the propagation delay of this path.
+#######
+here's the pipeline code for above issue:
+The multiplication operation is broken into two stages: a multiplication stage and a result latch stage.
+The multiplication is performed on the rising edge of the clock (posedge clk), and the intermediate result is stored in intermediate_result.
+On the next clock cycle, the intermediate result is latched into result.
+By pipelining the multiplication operation, we effectively reduce the critical path delay, allowing for higher clock frequencies and improved throughput of the multiplier module.
+####################################################################################################################################
+module pipelined_multiplier (
+    input clk,
+    input [7:0] a,
+    input [7:0] b,
+    output reg [15:0] result
+);
+
+reg [15:0] intermediate_result;
+
+always @(posedge clk) begin
+    intermediate_result <= a * b;
+end
+
+always @(posedge clk) begin
+    result <= intermediate_result;
+end
+
+endmodule
+####################################################################################################################################
