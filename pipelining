@@ -11,10 +11,12 @@ input logic rst;
 
 logic [8:0] next_stage_result;
 logic wr_en,full;
-logic [3:0] load_value_f;
+logic [7:0] load_value_f;
+logic load_sel;
+logic ready_go;
 
 // next stage
-assign next_stage_result <= load_value_f + (wr_en + !full);
+assign next_stage_result <= (ready_go) ? (load_value_f + (wr_en + !full)) : load_value_f;
 
 //present stage
 always_ff @ (posedge clk or negedge rst)
@@ -22,11 +24,11 @@ begin
   if(!rst)
     load_value_f <= '0;
   else begin
-    case(sel)
-       00: load_value_f <= 4'h0A;
-       01: load_value_f <= 4'h0B;
-       10: load_value_f <= 4'h0C;
-       11: load_value_f <= 4'h0D;
+    case(load_sel)
+       00: load_value_f <= {4'h0A, next_stage_result[7:0]};
+       01: load_value_f <= {4'h0B, next_stage_result[7:0]};
+       10: load_value_f <= {4'h0C, next_stage_result[7:0]};
+       11: load_value_f <= {4'h0D, next_stage_result[7:0]};
     endcase
  end
 end
